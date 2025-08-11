@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: pme-360-backend
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    autoDeploy: false
+
+databases:
+  - name: pme-360-db
+    databaseName: pme360
+    user: pme360user
+    region: frankfurt
+    plan: free
