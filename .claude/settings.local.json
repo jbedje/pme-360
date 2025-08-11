@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-react-app:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(npm run:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm start)",
+      "Bash(set PORT=3001)",
+      "Bash(touch:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(del:*)",
+      "Bash(rm:*)",
+      "Bash(npm init:*)",
+      "Bash(npx prisma:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker compose:*)",
+      "Bash(cp:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(curl:*)",
+      "Bash(npm ls:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(wmic process where processid=38712 delete:*)",
+      "Bash(npm test)",
+      "Bash(npx jest:*)",
+      "Bash(npm create:*)",
+      "Bash(wmic process where processid=24236 delete:*)",
+      "Bash(wmic process where processid=12340 delete:*)"
+    ],
+    "deny": []
+  }
+}
