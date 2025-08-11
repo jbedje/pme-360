@@ -134,3 +134,6 @@ static/uploads/
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+
+# Duplicate directories
+pme-360-platform/
