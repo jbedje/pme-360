@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate, Outlet } from 'react-router-dom';
 
 // Simple API service
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
 // Simple auth hook
 function useAuth() {
@@ -59,7 +59,7 @@ function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [wsConnected, setWsConnected] = useState(false);
@@ -75,7 +75,7 @@ function Layout() {
       const token = localStorage.getItem('auth_token');
       if (!token) return;
 
-      const wsUrl = `ws://localhost:3000/notifications?token=${token}`;
+      const wsUrl = import.meta.env.VITE_WS_URL ? `${import.meta.env.VITE_WS_URL}/notifications?token=${token}` : `ws://localhost:3000/notifications?token=${token}`;
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
@@ -405,7 +405,7 @@ function Layout() {
 
 // Users Page with API integration
 function UsersPage() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -543,8 +543,8 @@ function UsersPage() {
 // Dashboard Page
 function DashboardPage() {
   const { user } = useAuth();
-  const [analytics, setAnalytics] = useState(null);
-  const [recentActivity, setRecentActivity] = useState([]);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -960,9 +960,9 @@ function DashboardPage() {
 // Messages Page with full functionality
 function MessagesPage() {
   const { user } = useAuth();
-  const [messages, setMessages] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [newMessage, setNewMessage] = useState('');
   const [subject, setSubject] = useState('');
   const [loading, setLoading] = useState(true);
@@ -1257,10 +1257,10 @@ function MessagesPage() {
 
 function OpportunitiesPage() {
   const { user } = useAuth();
-  const [opportunities, setOpportunities] = useState([]);
+  const [opportunities, setOpportunities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<any>(null);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [filter, setFilter] = useState('ALL');
   
@@ -1795,10 +1795,10 @@ function OpportunitiesPage() {
 
 function EventsPage() {
   const { user } = useAuth();
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [filter, setFilter] = useState('ALL');
   
@@ -2396,10 +2396,10 @@ function EventsPage() {
 
 function ResourcesPage() {
   const { user } = useAuth();
-  const [resources, setResources] = useState([]);
+  const [resources, setResources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedResource, setSelectedResource] = useState(null);
+  const [selectedResource, setSelectedResource] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [filter, setFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -2420,7 +2420,7 @@ function ResourcesPage() {
   const [creating, setCreating] = useState(false);
   const [downloading, setDownloading] = useState({});
   const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<any>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const resourceTypes = [
