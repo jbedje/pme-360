@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, Outlet } from 'react-router-dom';
 
-// Test étape 2: Hooks useAuth et API calls
+// Test étape 3: App simplifié sans WebSocket ni notifications complexes
 const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'http://localhost:3000/api';
 
-// Simple auth hook (copié d'App.tsx)
+// Simple auth hook (sans les complexités)
 function useAuth() {
   const [user, setUser] = useState(() => {
     try {
@@ -49,120 +49,221 @@ function useAuth() {
   return { user, login, logout, isAuthenticated: !!user };
 }
 
-function AppDebug() {
-  console.log('AppDebug rendering with hooks');
-  
-  const [step, setStep] = useState(2);
-  const [testResults, setTestResults] = useState<any[]>([]);
-  
-  // Test du hook useAuth
-  const { user, login, logout, isAuthenticated } = useAuth();
-  
-  // Test d'useEffect
-  useEffect(() => {
-    console.log('useEffect running');
-    setTestResults(prev => [...prev, '✅ useEffect fonctionne']);
-  }, []);
+// Navigation simple
+const navigation = [
+  { name: 'Tableau de bord', href: '/dashboard', icon: '🏠' },
+  { name: 'Utilisateurs', href: '/users', icon: '👥' },
+  { name: 'Messages', href: '/messages', icon: '💬' },
+];
 
-  // Test API call
-  const testAPI = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/test`);
-      const data = await response.json();
-      setTestResults(prev => [...prev, `✅ API test: ${data.message}`]);
-    } catch (error) {
-      setTestResults(prev => [...prev, `❌ API error: ${error}`]);
-    }
+// Layout simplifié SANS WebSocket ni notifications complexes
+function SimpleLayout() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/', { replace: true });
   };
+
+  // PAS DE WebSocket useEffect ici - c'est peut-être le problème !
+  
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+      {/* Sidebar */}
+      <div style={{ 
+        width: sidebarOpen ? '240px' : '60px',
+        backgroundColor: '#1e40af',
+        color: 'white',
+        transition: 'width 0.2s',
+        padding: '20px 10px'
+      }}>
+        <button 
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            color: 'white', 
+            fontSize: '20px',
+            marginBottom: '20px',
+            cursor: 'pointer'
+          }}
+        >
+          ☰
+        </button>
+        
+        {sidebarOpen && (
+          <div>
+            <h2 style={{ fontSize: '16px', margin: '0 0 20px 0' }}>PME 360</h2>
+            {navigation.map((item) => (
+              <div key={item.name} style={{ margin: '10px 0' }}>
+                <a 
+                  href={item.href}
+                  style={{ 
+                    color: 'white', 
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  {item.icon} {item.name}
+                </a>
+              </div>
+            ))}
+            
+            <button 
+              onClick={handleLogout}
+              style={{
+                background: '#dc2626',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                marginTop: '20px'
+              }}
+            >
+              🚪 Déconnexion
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Main content */}
+      <div style={{ flex: 1, padding: '20px' }}>
+        <h1>✅ Layout simplifié fonctionne !</h1>
+        <p>Utilisateur: {user?.email || 'Non connecté'}</p>
+        <Outlet />
+      </div>
+    </div>
+  );
+}
+
+// Pages simples
+function Dashboard() {
+  return (
+    <div>
+      <h2>📊 Tableau de bord</h2>
+      <p>Page principale de l'application</p>
+    </div>
+  );
+}
+
+function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('test@example.com');
+  const [password, setPassword] = useState('password');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    const result = await login(email, password);
+    
+    if (result.success) {
+      navigate('/dashboard');
+    } else {
+      alert('Erreur: ' + result.error);
+    }
+    
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ 
+      maxWidth: '400px', 
+      margin: '50px auto', 
+      padding: '20px',
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+    }}>
+      <h2>🔐 Connexion PME 360</h2>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>Email:</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ 
+              width: '100%', 
+              padding: '8px', 
+              border: '1px solid #ddd',
+              borderRadius: '4px'
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>Mot de passe:</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{ 
+              width: '100%', 
+              padding: '8px', 
+              border: '1px solid #ddd',
+              borderRadius: '4px'
+            }}
+          />
+        </div>
+        <button 
+          type="submit" 
+          disabled={loading}
+          style={{
+            width: '100%',
+            padding: '10px',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {loading ? 'Connexion...' : 'Se connecter'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// Protected Route
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+}
+
+function AppDebug() {
+  console.log('AppDebug rendering simplified app');
   
   try {
     return (
       <Router>
-        <div style={{ 
-          padding: '20px', 
-          fontFamily: 'Arial, sans-serif',
-          backgroundColor: '#f8fafc',
-          minHeight: '100vh'
-        }}>
-          <h1 style={{ color: '#1e40af', marginBottom: '20px' }}>
-            🏢 PME 360 - Debug Étape {step}: Hooks
-          </h1>
-          
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '20px', 
-            borderRadius: '8px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            marginBottom: '20px'
-          }}>
-            <h2>🔍 Test Hooks useAuth + useEffect</h2>
-            <p>✅ React fonctionne</p>
-            <p>✅ Router fonctionne</p>
-            <p>✅ useAuth hook: {isAuthenticated ? 'Connecté' : 'Non connecté'}</p>
-            <p>✅ User state: {user ? `${user.email || 'email non défini'}` : 'null'}</p>
-            <p>✅ API_BASE: {API_BASE}</p>
-            
-            <div style={{ margin: '20px 0' }}>
-              <h3>Résultats des tests:</h3>
-              {testResults.map((result, index) => (
-                <div key={index} style={{ margin: '5px 0' }}>{result}</div>
-              ))}
-            </div>
-            
-            <div style={{ margin: '20px 0' }}>
-              <button 
-                onClick={testAPI}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  marginRight: '10px'
-                }}
-              >
-                🧪 Tester API
-              </button>
-              
-              <button 
-                onClick={() => setStep(step + 1)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Étape suivante: {step + 1}
-              </button>
-            </div>
-          </div>
-
-          <Routes>
-            <Route path="/" element={
-              <div style={{ 
-                backgroundColor: '#ecfdf5', 
-                padding: '15px', 
-                borderRadius: '8px',
-                borderLeft: '4px solid #10b981'
-              }}>
-                <h3>✅ Hooks fonctionnent</h3>
-                <p>Si vous voyez ce message, les hooks useAuth et useEffect fonctionnent.</p>
-                <p>Le problème est probablement dans les composants complexes ou les états spécifiques.</p>
-              </div>
-            } />
-          </Routes>
-        </div>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <SimpleLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="users" element={<div><h2>👥 Utilisateurs</h2></div>} />
+            <Route path="messages" element={<div><h2>💬 Messages</h2></div>} />
+          </Route>
+        </Routes>
       </Router>
     );
   } catch (error) {
-    console.error('AppDebug Hooks error:', error);
+    console.error('AppDebug App error:', error);
     return (
       <div style={{ padding: '20px', color: 'red' }}>
-        <h1>❌ Erreur Hooks</h1>
+        <h1>❌ Erreur App</h1>
         <pre>{error?.toString()}</pre>
       </div>
     );
