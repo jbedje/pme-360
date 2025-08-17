@@ -2479,24 +2479,1890 @@ function CreateOpportunityModal({ onClose, onSave }) {
   );
 }
 
+// Events Management Page
 function EventsPage() {
+  const { user } = useAuth();
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+
+  // Mock events data
+  useEffect(() => {
+    setTimeout(() => {
+      const mockEvents = [
+        {
+          id: 1,
+          title: 'Conférence FinTech Paris 2024',
+          type: 'conference',
+          description: 'La plus grande conférence européenne dédiée aux innovations financières et aux nouvelles technologies de paiement.',
+          startDate: '2024-09-25T09:00:00Z',
+          endDate: '2024-09-25T18:00:00Z',
+          location: 'Palais des Congrès, Paris',
+          isOnline: false,
+          organizer: {
+            id: 2,
+            name: 'Marie Dubois',
+            company: 'FinTech Europe',
+            profileType: 'entrepreneur'
+          },
+          capacity: 500,
+          registered: 347,
+          price: 150,
+          currency: 'EUR',
+          status: 'upcoming',
+          image: '🏦',
+          tags: ['FinTech', 'Innovation', 'Paiements', 'Blockchain'],
+          agenda: [
+            { time: '09:00', title: 'Accueil et petit-déjeuner' },
+            { time: '10:00', title: 'Keynote: L\'avenir des paiements numériques' },
+            { time: '11:30', title: 'Panel: Blockchain et DeFi' },
+            { time: '14:00', title: 'Workshops techniques' },
+            { time: '16:00', title: 'Networking et clôture' }
+          ],
+          speakers: ['Marie Dubois', 'Pierre Martin', 'Sophie Laurent'],
+          createdAt: '2024-08-01T10:00:00Z',
+          hasRegistered: false
+        },
+        {
+          id: 2,
+          title: 'Webinaire Marketing Digital',
+          type: 'webinar',
+          description: 'Formation intensive sur les dernières stratégies de marketing digital et growth hacking pour startups.',
+          startDate: '2024-09-20T14:00:00Z',
+          endDate: '2024-09-20T16:00:00Z',
+          location: 'En ligne',
+          isOnline: true,
+          organizer: {
+            id: 4,
+            name: 'Sophie Laurent',
+            company: 'GrowthLab',
+            profileType: 'mentor'
+          },
+          capacity: 100,
+          registered: 78,
+          price: 0,
+          currency: 'EUR',
+          status: 'upcoming',
+          image: '📱',
+          tags: ['Marketing', 'Digital', 'Growth', 'Formation'],
+          agenda: [
+            { time: '14:00', title: 'Introduction au growth hacking' },
+            { time: '14:30', title: 'Stratégies d\'acquisition client' },
+            { time: '15:15', title: 'Outils et métriques essentiels' },
+            { time: '15:45', title: 'Q&A et cas pratiques' }
+          ],
+          speakers: ['Sophie Laurent'],
+          createdAt: '2024-08-10T15:30:00Z',
+          hasRegistered: true
+        },
+        {
+          id: 3,
+          title: 'Salon de l\'Entrepreneuriat',
+          type: 'salon',
+          description: 'Rencontrez entrepreneurs, investisseurs et experts lors du plus grand salon entrepreneurial de la région.',
+          startDate: '2024-10-15T10:00:00Z',
+          endDate: '2024-10-16T19:00:00Z',
+          location: 'Centre d\'Exposition, Lyon',
+          isOnline: false,
+          organizer: {
+            id: 5,
+            name: 'Thomas Durand',
+            company: 'Entrepreneur Network',
+            profileType: 'investor'
+          },
+          capacity: 2000,
+          registered: 1245,
+          price: 25,
+          currency: 'EUR',
+          status: 'upcoming',
+          image: '🏢',
+          tags: ['Entrepreneuriat', 'Networking', 'Investissement', 'Innovation'],
+          agenda: [
+            { time: '10:00', title: 'Ouverture du salon' },
+            { time: '11:00', title: 'Pitchs startups' },
+            { time: '14:00', title: 'Table ronde investisseurs' },
+            { time: '16:00', title: 'Ateliers thématiques' },
+            { time: '18:00', title: 'Cocktail networking' }
+          ],
+          speakers: ['Thomas Durand', 'Julie Moreau', 'Pierre Martin'],
+          createdAt: '2024-07-20T09:00:00Z',
+          hasRegistered: false
+        },
+        {
+          id: 4,
+          title: 'Hackathon GreenTech',
+          type: 'hackathon',
+          description: '48h pour développer des solutions innovantes aux défis environnementaux actuels.',
+          startDate: '2024-11-08T18:00:00Z',
+          endDate: '2024-11-10T18:00:00Z',
+          location: 'Campus Innovation, Toulouse',
+          isOnline: false,
+          organizer: {
+            id: 6,
+            name: 'Julie Moreau',
+            company: 'EcoInnovation Hub',
+            profileType: 'entrepreneur'
+          },
+          capacity: 150,
+          registered: 89,
+          price: 50,
+          currency: 'EUR',
+          status: 'upcoming',
+          image: '🌱',
+          tags: ['Hackathon', 'GreenTech', 'Innovation', 'Développement'],
+          agenda: [
+            { time: '18:00', title: 'Accueil et formation des équipes' },
+            { time: '19:30', title: 'Présentation des défis' },
+            { time: '20:00', title: 'Début du développement' },
+            { time: '12:00', title: 'Point d\'étape et mentoring' },
+            { time: '16:00', title: 'Présentations finales' }
+          ],
+          speakers: ['Julie Moreau', 'Experts GreenTech'],
+          createdAt: '2024-08-15T11:00:00Z',
+          hasRegistered: false
+        },
+        {
+          id: 5,
+          title: 'Workshop IA & Business',
+          type: 'workshop',
+          description: 'Atelier pratique sur l\'intégration de l\'intelligence artificielle dans les processus business.',
+          startDate: '2024-08-15T09:00:00Z',
+          endDate: '2024-08-15T17:00:00Z',
+          location: 'TechHub, Marseille',
+          isOnline: false,
+          organizer: {
+            id: 3,
+            name: 'Pierre Martin',
+            company: 'AI Solutions',
+            profileType: 'entrepreneur'
+          },
+          capacity: 30,
+          registered: 30,
+          price: 200,
+          currency: 'EUR',
+          status: 'completed',
+          image: '🤖',
+          tags: ['IA', 'Business', 'Workshop', 'Formation'],
+          agenda: [
+            { time: '09:00', title: 'Introduction à l\'IA business' },
+            { time: '10:30', title: 'Cas d\'usage concrets' },
+            { time: '14:00', title: 'Atelier pratique' },
+            { time: '16:00', title: 'Implémentation et ROI' }
+          ],
+          speakers: ['Pierre Martin', 'Experts IA'],
+          createdAt: '2024-07-01T14:00:00Z',
+          hasRegistered: true
+        }
+      ];
+      setEvents(mockEvents);
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  // Filter events
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = 
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      event.organizer.company.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesType = !filterType || event.type === filterType;
+    const matchesStatus = !filterStatus || event.status === filterStatus;
+    
+    return matchesSearch && matchesType && matchesStatus;
+  });
+
+  const getTypeColor = (type) => {
+    switch (type) {
+      case 'conference': return 'bg-blue-100 text-blue-800';
+      case 'webinar': return 'bg-green-100 text-green-800';
+      case 'workshop': return 'bg-purple-100 text-purple-800';
+      case 'salon': return 'bg-orange-100 text-orange-800';
+      case 'hackathon': return 'bg-red-100 text-red-800';
+      case 'networking': return 'bg-indigo-100 text-indigo-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'upcoming': return 'bg-green-100 text-green-800';
+      case 'ongoing': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-gray-100 text-gray-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleRegisterToEvent = (eventId) => {
+    setEvents(events.map(event => 
+      event.id === eventId 
+        ? { ...event, registered: event.registered + 1, hasRegistered: true }
+        : event
+    ));
+  };
+
+  const isEventPast = (endDate) => {
+    return new Date(endDate) < new Date();
+  };
+
+  const isEventSoldOut = (event) => {
+    return event.registered >= event.capacity;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Chargement des événements...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Événements</h1>
-      <div className="bg-white shadow rounded-lg p-6">
-        <p className="text-gray-600">Gestion des événements à venir...</p>
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Événements</h1>
+            <p className="mt-2 text-gray-600">Découvrez et organisez des événements professionnels</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                  viewMode === 'list' ? 'bg-white shadow text-gray-900' : 'text-gray-600'
+                }`}
+              >
+                📋 Liste
+              </button>
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                  viewMode === 'calendar' ? 'bg-white shadow text-gray-900' : 'text-gray-600'
+                }`}
+              >
+                📅 Calendrier
+              </button>
+            </div>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <span className="text-lg">+</span>
+              Nouvel événement
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-blue-100">
+              <span className="text-2xl">📊</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total</p>
+              <p className="text-2xl font-bold text-gray-900">{events.length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-green-100">
+              <span className="text-2xl">🟢</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">À venir</p>
+              <p className="text-2xl font-bold text-gray-900">{events.filter(e => e.status === 'upcoming').length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-purple-100">
+              <span className="text-2xl">👥</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Participants</p>
+              <p className="text-2xl font-bold text-gray-900">{events.reduce((sum, e) => sum + e.registered, 0)}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-orange-100">
+              <span className="text-2xl">🎯</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Mes inscriptions</p>
+              <p className="text-2xl font-bold text-gray-900">{events.filter(e => e.hasRegistered).length}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-2">
+            <input
+              type="text"
+              placeholder="Rechercher des événements..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Tous les types</option>
+            <option value="conference">Conférence</option>
+            <option value="webinar">Webinaire</option>
+            <option value="workshop">Workshop</option>
+            <option value="salon">Salon</option>
+            <option value="hackathon">Hackathon</option>
+            <option value="networking">Networking</option>
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Tous statuts</option>
+            <option value="upcoming">À venir</option>
+            <option value="ongoing">En cours</option>
+            <option value="completed">Terminé</option>
+            <option value="cancelled">Annulé</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Events Content */}
+      {viewMode === 'list' ? (
+        /* Events List */
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredEvents.map((event) => (
+            <div key={event.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl">{event.image}</div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {event.title}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(event.type)}`}>
+                          {event.type}
+                        </span>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(event.status)}`}>
+                          {event.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedEvent(event)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    ℹ️
+                  </button>
+                </div>
+
+                {/* Date and Location */}
+                <div className="mb-4">
+                  <div className="flex items-center text-gray-600 text-sm mb-2">
+                    <span className="mr-2">📅</span>
+                    <span>{formatDate(event.startDate)}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600 text-sm mb-2">
+                    <span className="mr-2">🕒</span>
+                    <span>{formatTime(event.startDate)} - {formatTime(event.endDate)}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600 text-sm">
+                    <span className="mr-2">{event.isOnline ? '💻' : '📍'}</span>
+                    <span>{event.location}</span>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {event.description}
+                </p>
+
+                {/* Organizer */}
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-xs font-medium text-gray-600">
+                      {event.organizer.name[0]}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{event.organizer.name}</p>
+                    <p className="text-xs text-gray-500">{event.organizer.company}</p>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {event.tags.slice(0, 3).map((tag) => (
+                    <span key={tag} className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                      {tag}
+                    </span>
+                  ))}
+                  {event.tags.length > 3 && (
+                    <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                      +{event.tags.length - 3}
+                    </span>
+                  )}
+                </div>
+
+                {/* Stats and Price */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span>👥 {event.registered}/{event.capacity}</span>
+                    <span className={`font-medium ${event.price === 0 ? 'text-green-600' : 'text-blue-600'}`}>
+                      {event.price === 0 ? 'Gratuit' : `${event.price} ${event.currency}`}
+                    </span>
+                  </div>
+                  <div className="w-20 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{ width: `${Math.min((event.registered / event.capacity) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleRegisterToEvent(event.id)}
+                    disabled={event.hasRegistered || isEventPast(event.endDate) || isEventSoldOut(event)}
+                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      event.hasRegistered
+                        ? 'bg-green-100 text-green-800 cursor-not-allowed'
+                        : isEventPast(event.endDate)
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                        : isEventSoldOut(event)
+                        ? 'bg-red-100 text-red-800 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {event.hasRegistered ? '✓ Inscrit' : 
+                     isEventPast(event.endDate) ? 'Terminé' :
+                     isEventSoldOut(event) ? 'Complet' : 'S\'inscrire'}
+                  </button>
+                  <button
+                    onClick={() => setSelectedEvent(event)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                  >
+                    Détails
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Calendar View */
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="text-center py-12">
+            <span className="text-6xl mb-4 block">📅</span>
+            <h3 className="text-xl font-medium text-gray-900 mb-2">Vue calendrier</h3>
+            <p className="text-gray-500">Fonctionnalité à développer prochainement</p>
+            <button
+              onClick={() => setViewMode('list')}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Retour à la liste
+            </button>
+          </div>
+        </div>
+      )}
+
+      {filteredEvents.length === 0 && viewMode === 'list' && (
+        <div className="text-center py-12">
+          <span className="text-6xl mb-4 block">📅</span>
+          <h3 className="text-xl font-medium text-gray-900 mb-2">Aucun événement trouvé</h3>
+          <p className="text-gray-500">
+            {searchTerm || filterType || filterStatus
+              ? 'Essayez de modifier vos critères de recherche.'
+              : 'Commencez par créer votre premier événement.'
+            }
+          </p>
+        </div>
+      )}
+
+      {/* Event Details Modal */}
+      {selectedEvent && (
+        <EventDetailModal
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onRegister={() => {
+            handleRegisterToEvent(selectedEvent.id);
+            setSelectedEvent(null);
+          }}
+        />
+      )}
+
+      {/* Create Event Modal */}
+      {showCreateForm && (
+        <CreateEventModal
+          onClose={() => setShowCreateForm(false)}
+          onSave={(eventData) => {
+            const newEvent = {
+              id: events.length + 1,
+              ...eventData,
+              organizer: {
+                id: user.id,
+                name: `${user.firstName} ${user.lastName}`,
+                company: user.company,
+                profileType: user.profileType
+              },
+              registered: 0,
+              status: 'upcoming',
+              createdAt: new Date().toISOString(),
+              hasRegistered: false
+            };
+            setEvents([newEvent, ...events]);
+            setShowCreateForm(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Event Detail Modal
+function EventDetailModal({ event, onClose, onRegister }) {
+  const isEventPast = (endDate) => {
+    return new Date(endDate) < new Date();
+  };
+
+  const isEventSoldOut = (event) => {
+    return event.registered >= event.capacity;
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getTypeColor = (type) => {
+    switch (type) {
+      case 'conference': return 'bg-blue-100 text-blue-800';
+      case 'webinar': return 'bg-green-100 text-green-800';
+      case 'workshop': return 'bg-purple-100 text-purple-800';
+      case 'salon': return 'bg-orange-100 text-orange-800';
+      case 'hackathon': return 'bg-red-100 text-red-800';
+      case 'networking': return 'bg-indigo-100 text-indigo-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'upcoming': return 'bg-green-100 text-green-800';
+      case 'ongoing': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-gray-100 text-gray-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="text-4xl">{event.image}</div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{event.title}</h2>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getTypeColor(event.type)}`}>
+                    {event.type}
+                  </span>
+                  <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(event.status)}`}>
+                    {event.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Date and Location */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Informations pratiques</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center text-gray-600 mb-2">
+                  <span className="mr-2">📅</span>
+                  <span>{formatDate(event.startDate)}</span>
+                </div>
+                <div className="flex items-center text-gray-600 mb-2">
+                  <span className="mr-2">🕒</span>
+                  <span>{formatTime(event.startDate)} - {formatTime(event.endDate)}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <span className="mr-2">{event.isOnline ? '💻' : '📍'}</span>
+                  <span>{event.location}</span>
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center text-gray-600 mb-2">
+                  <span className="mr-2">👥</span>
+                  <span>{event.registered}/{event.capacity} participants</span>
+                </div>
+                <div className="flex items-center text-gray-600 mb-2">
+                  <span className="mr-2">💰</span>
+                  <span className={`font-medium ${event.price === 0 ? 'text-green-600' : 'text-blue-600'}`}>
+                    {event.price === 0 ? 'Gratuit' : `${event.price} ${event.currency}`}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full"
+                    style={{ width: `${Math.min((event.registered / event.capacity) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+            <p className="text-gray-600 leading-relaxed">{event.description}</p>
+          </div>
+
+          {/* Agenda */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Programme</h3>
+            <div className="space-y-3">
+              {event.agenda.map((item, index) => (
+                <div key={index} className="flex items-center">
+                  <div className="w-16 text-sm font-medium text-blue-600">{item.time}</div>
+                  <div className="flex-1 text-gray-700">{item.title}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Speakers */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Intervenants</h3>
+            <div className="flex flex-wrap gap-2">
+              {event.speakers.map((speaker) => (
+                <span key={speaker} className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">
+                  {speaker}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Organizer */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Organisé par</h3>
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
+                <span className="text-sm font-medium text-gray-600">
+                  {event.organizer.name[0]}
+                </span>
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">{event.organizer.name}</p>
+                <p className="text-gray-600">{event.organizer.company}</p>
+                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                  {event.organizer.profileType}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Tags</h3>
+            <div className="flex flex-wrap gap-2">
+              {event.tags.map((tag) => (
+                <span key={tag} className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button
+              onClick={onRegister}
+              disabled={event.hasRegistered || isEventPast(event.endDate) || isEventSoldOut(event)}
+              className={`flex-1 px-6 py-3 text-sm font-medium rounded-md transition-colors ${
+                event.hasRegistered
+                  ? 'bg-green-100 text-green-800 cursor-not-allowed'
+                  : isEventPast(event.endDate)
+                  ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                  : isEventSoldOut(event)
+                  ? 'bg-red-100 text-red-800 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              {event.hasRegistered ? '✓ Inscrit à l\'événement' : 
+               isEventPast(event.endDate) ? 'Événement terminé' :
+               isEventSoldOut(event) ? 'Événement complet' : 'S\'inscrire à l\'événement'}
+            </button>
+            <button
+              onClick={onClose}
+              className="px-6 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Create Event Modal
+function CreateEventModal({ onClose, onSave }) {
+  const [formData, setFormData] = useState({
+    title: '',
+    type: 'conference',
+    description: '',
+    startDate: '',
+    endDate: '',
+    location: '',
+    isOnline: false,
+    capacity: '',
+    price: '',
+    currency: 'EUR',
+    tags: [''],
+    agenda: [{ time: '', title: '' }],
+    speakers: [''],
+    image: '📅'
+  });
+  const [errors, setErrors] = useState({});
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Simple validation
+    const newErrors = {};
+    if (!formData.title.trim()) newErrors.title = 'Titre requis';
+    if (!formData.description.trim()) newErrors.description = 'Description requise';
+    if (!formData.startDate) newErrors.startDate = 'Date de début requise';
+    if (!formData.endDate) newErrors.endDate = 'Date de fin requise';
+    if (!formData.location.trim()) newErrors.location = 'Lieu requis';
+    if (!formData.capacity) newErrors.capacity = 'Capacité requise';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    const processedData = {
+      ...formData,
+      tags: formData.tags.filter(tag => tag.trim()),
+      agenda: formData.agenda.filter(item => item.time && item.title),
+      speakers: formData.speakers.filter(speaker => speaker.trim()),
+      capacity: parseInt(formData.capacity),
+      price: parseFloat(formData.price) || 0
+    };
+
+    onSave(processedData);
+  };
+
+  const addAgendaItem = () => {
+    setFormData({ ...formData, agenda: [...formData.agenda, { time: '', title: '' }] });
+  };
+
+  const removeAgendaItem = (index) => {
+    setFormData({ 
+      ...formData, 
+      agenda: formData.agenda.filter((_, i) => i !== index) 
+    });
+  };
+
+  const updateAgendaItem = (index, field, value) => {
+    const newAgenda = [...formData.agenda];
+    newAgenda[index][field] = value;
+    setFormData({ ...formData, agenda: newAgenda });
+  };
+
+  const addSpeaker = () => {
+    setFormData({ ...formData, speakers: [...formData.speakers, ''] });
+  };
+
+  const removeSpeaker = (index) => {
+    setFormData({ 
+      ...formData, 
+      speakers: formData.speakers.filter((_, i) => i !== index) 
+    });
+  };
+
+  const updateSpeaker = (index, value) => {
+    const newSpeakers = [...formData.speakers];
+    newSpeakers[index] = value;
+    setFormData({ ...formData, speakers: newSpeakers });
+  };
+
+  const addTag = () => {
+    setFormData({ ...formData, tags: [...formData.tags, ''] });
+  };
+
+  const removeTag = (index) => {
+    setFormData({ 
+      ...formData, 
+      tags: formData.tags.filter((_, i) => i !== index) 
+    });
+  };
+
+  const updateTag = (index, value) => {
+    const newTags = [...formData.tags];
+    newTags[index] = value;
+    setFormData({ ...formData, tags: newTags });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Créer un événement</h2>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Basic Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Titre *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.title ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                />
+                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Type
+                </label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="conference">Conférence</option>
+                  <option value="webinar">Webinaire</option>
+                  <option value="workshop">Workshop</option>
+                  <option value="salon">Salon</option>
+                  <option value="hackathon">Hackathon</option>
+                  <option value="networking">Networking</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description *
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.description ? 'border-red-300' : 'border-gray-300'
+                }`}
+              />
+              {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date de début *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.startDate ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                />
+                {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date de fin *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.endDate ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                />
+                {errors.endDate && <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Lieu *
+              </label>
+              <input
+                type="text"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors.location ? 'border-red-300' : 'border-gray-300'
+                }`}
+              />
+              {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isOnline"
+                checked={formData.isOnline}
+                onChange={(e) => setFormData({ ...formData, isOnline: e.target.checked })}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="isOnline" className="ml-2 block text-sm text-gray-900">
+                Événement en ligne
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Capacité *
+                </label>
+                <input
+                  type="number"
+                  value={formData.capacity}
+                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.capacity ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                />
+                {errors.capacity && <p className="text-red-500 text-sm mt-1">{errors.capacity}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Prix
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Devise
+                </label>
+                <select
+                  value={formData.currency}
+                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="EUR">EUR</option>
+                  <option value="USD">USD</option>
+                  <option value="GBP">GBP</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Agenda */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Programme
+              </label>
+              {formData.agenda.map((item, index) => (
+                <div key={index} className="flex gap-2 mb-2">
+                  <input
+                    type="time"
+                    value={item.time}
+                    onChange={(e) => updateAgendaItem(index, 'time', e.target.value)}
+                    className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
+                    value={item.title}
+                    onChange={(e) => updateAgendaItem(index, 'title', e.target.value)}
+                    placeholder="Activité..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeAgendaItem(index)}
+                    className="px-3 py-2 text-red-600 hover:text-red-800 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addAgendaItem}
+                className="text-blue-600 hover:text-blue-800 text-sm transition-colors"
+              >
+                + Ajouter une activité
+              </button>
+            </div>
+
+            {/* Speakers */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Intervenants
+              </label>
+              {formData.speakers.map((speaker, index) => (
+                <div key={index} className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={speaker}
+                    onChange={(e) => updateSpeaker(index, e.target.value)}
+                    placeholder="Nom de l'intervenant..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSpeaker(index)}
+                    className="px-3 py-2 text-red-600 hover:text-red-800 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addSpeaker}
+                className="text-blue-600 hover:text-blue-800 text-sm transition-colors"
+              >
+                + Ajouter un intervenant
+              </button>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tags
+              </label>
+              {formData.tags.map((tag, index) => (
+                <div key={index} className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={tag}
+                    onChange={(e) => updateTag(index, e.target.value)}
+                    placeholder="Tag..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeTag(index)}
+                    className="px-3 py-2 text-red-600 hover:text-red-800 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addTag}
+                className="text-blue-600 hover:text-blue-800 text-sm transition-colors"
+              >
+                + Ajouter un tag
+              </button>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Créer l'événement
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Resource Detail Modal
+function ResourceDetailModal({ resource, onClose, onDownload, onRate }) {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+
+  const handleRateSubmit = (e) => {
+    e.preventDefault();
+    if (rating > 0) {
+      onRate(resource.id, rating, comment);
+      setRating(0);
+      setComment('');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-2xl font-bold text-gray-900">{resource.title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <span className="text-2xl">&times;</span>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Resource Info */}
+          <div className="flex items-center space-x-4">
+            <span className="text-4xl">{resource.icon}</span>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  resource.category === 'guide' ? 'bg-blue-100 text-blue-800' :
+                  resource.category === 'template' ? 'bg-green-100 text-green-800' :
+                  resource.category === 'formation' ? 'bg-purple-100 text-purple-800' :
+                  resource.category === 'legal' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {resource.category}
+                </span>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  resource.type === 'pdf' ? 'bg-red-100 text-red-800' :
+                  resource.type === 'video' ? 'bg-blue-100 text-blue-800' :
+                  resource.type === 'doc' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {resource.type.toUpperCase()}
+                </span>
+                <span className="text-sm text-gray-500">{resource.size}</span>
+              </div>
+              <p className="text-sm text-gray-600">Par {resource.author} • {resource.downloads} téléchargements</p>
+            </div>
+          </div>
+
+          <p className="text-gray-700">{resource.description}</p>
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-2">
+            {resource.tags.map((tag, index) => (
+              <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded">
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Rating Display */}
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center">
+              {[1,2,3,4,5].map((star) => (
+                <span key={star} className={`text-lg ${star <= resource.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                  ⭐
+                </span>
+              ))}
+            </div>
+            <span className="text-sm text-gray-600">({resource.reviews} avis)</span>
+          </div>
+
+          {/* Download Button */}
+          <button
+            onClick={() => onDownload(resource)}
+            className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            📥 Télécharger {resource.type.toUpperCase()}
+          </button>
+
+          {/* Rating Form */}
+          <div className="border-t pt-4">
+            <h4 className="font-semibold mb-2">Évaluer cette ressource</h4>
+            <form onSubmit={handleRateSubmit} className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm">Note:</span>
+                {[1,2,3,4,5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    className={`text-lg ${star <= rating ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400`}
+                  >
+                    ⭐
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Commentaire (optionnel)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="3"
+              />
+              <button
+                type="submit"
+                disabled={rating === 0}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              >
+                Soumettre l'évaluation
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Create Resource Modal
+function CreateResourceModal({ onClose, onSave }) {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'guide',
+    type: 'pdf',
+    file: null,
+    tags: [],
+    isPublic: true
+  });
+  const [newTag, setNewTag] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (formData.title && formData.description) {
+      const resource = {
+        id: Date.now(),
+        ...formData,
+        author: 'Utilisateur actuel',
+        uploadDate: new Date().toISOString(),
+        downloads: 0,
+        rating: 0,
+        reviews: 0,
+        size: '2.5 MB', // Simulated
+        icon: formData.category === 'guide' ? '📖' : 
+              formData.category === 'template' ? '📄' :
+              formData.category === 'formation' ? '🎓' :
+              formData.category === 'legal' ? '⚖️' : '📋'
+      };
+      onSave(resource);
+      onClose();
+    }
+  };
+
+  const addTag = () => {
+    if (newTag && !formData.tags.includes(newTag)) {
+      setFormData({...formData, tags: [...formData.tags, newTag]});
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (tagToRemove) => {
+    setFormData({...formData, tags: formData.tags.filter(tag => tag !== tagToRemove)});
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-gray-900">Ajouter une ressource</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <span className="text-2xl">&times;</span>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows="3"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="guide">Guide</option>
+                <option value="template">Modèle</option>
+                <option value="formation">Formation</option>
+                <option value="legal">Juridique</option>
+                <option value="finance">Finance</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Type de fichier</label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData({...formData, type: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="pdf">PDF</option>
+                <option value="doc">Document</option>
+                <option value="video">Vidéo</option>
+                <option value="presentation">Présentation</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Fichier</label>
+            <input
+              type="file"
+              onChange={(e) => setFormData({...formData, file: e.target.files[0]})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.avi"
+            />
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+            <div className="flex space-x-2 mb-2">
+              <input
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                placeholder="Ajouter un tag..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={addTag}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+              >
+                +
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {formData.tags.map((tag, index) => (
+                <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded flex items-center">
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="ml-1 text-blue-600 hover:text-blue-800"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="isPublic"
+              checked={formData.isPublic}
+              onChange={(e) => setFormData({...formData, isPublic: e.target.checked})}
+              className="mr-2"
+            />
+            <label htmlFor="isPublic" className="text-sm text-gray-700">
+              Rendre cette ressource publique
+            </label>
+          </div>
+
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              💾 Sauvegarder
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 }
 
 function ResourcesPage() {
+  const { user } = useAuth();
+  const [resources, setResources] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+
+  // Mock resources data
+  useEffect(() => {
+    setTimeout(() => {
+      const mockResources = [
+        {
+          id: 1,
+          title: 'Guide complet de création d\'entreprise',
+          description: 'Guide détaillé pour créer son entreprise en France : démarches administratives, choix du statut juridique, business plan, financements.',
+          category: 'guide',
+          type: 'pdf',
+          author: 'Marie Dubois',
+          uploadDate: '2024-08-15T10:00:00Z',
+          downloads: 1247,
+          rating: 4.8,
+          reviews: 156,
+          size: '3.2 MB',
+          icon: '📖',
+          tags: ['Création', 'Administratif', 'Business Plan', 'Statut juridique'],
+          isPublic: true
+        },
+        {
+          id: 2,
+          title: 'Modèle de Business Plan',
+          description: 'Template complet de business plan avec exemples et conseils pour présenter votre projet aux investisseurs.',
+          category: 'template',
+          type: 'doc',
+          author: 'Pierre Martin',
+          uploadDate: '2024-08-10T14:30:00Z',
+          downloads: 892,
+          rating: 4.6,
+          reviews: 98,
+          size: '1.8 MB',
+          icon: '📄',
+          tags: ['Business Plan', 'Template', 'Investissement', 'Présentation'],
+          isPublic: true
+        },
+        {
+          id: 3,
+          title: 'Formation Marketing Digital',
+          description: 'Série de vidéos pour maîtriser le marketing digital : SEO, réseaux sociaux, publicité en ligne, email marketing.',
+          category: 'formation',
+          type: 'video',
+          author: 'Sophie Laurent',
+          uploadDate: '2024-08-05T16:00:00Z',
+          downloads: 567,
+          rating: 4.9,
+          reviews: 203,
+          size: '1.2 GB',
+          icon: '🎓',
+          tags: ['Marketing', 'Digital', 'SEO', 'Réseaux sociaux'],
+          isPublic: true
+        },
+        {
+          id: 4,
+          title: 'Contrats types pour startups',
+          description: 'Collection de modèles de contrats essentiels : NDA, contrats employés, partenariats, prestations de service.',
+          category: 'legal',
+          type: 'pdf',
+          author: 'Thomas Durand',
+          uploadDate: '2024-07-28T09:15:00Z',
+          downloads: 445,
+          rating: 4.4,
+          reviews: 67,
+          size: '2.1 MB',
+          icon: '⚖️',
+          tags: ['Contrats', 'Juridique', 'NDA', 'Employés'],
+          isPublic: true
+        },
+        {
+          id: 5,
+          title: 'Tableaux de bord financiers Excel',
+          description: 'Modèles Excel pour le suivi financier : trésorerie, prévisionnel, suivi des ventes, calcul de rentabilité.',
+          category: 'finance',
+          type: 'doc',
+          author: 'Julie Moreau',
+          uploadDate: '2024-07-20T11:45:00Z',
+          downloads: 789,
+          rating: 4.7,
+          reviews: 124,
+          size: '4.5 MB',
+          icon: '💰',
+          tags: ['Finance', 'Excel', 'Trésorerie', 'Suivi'],
+          isPublic: true
+        },
+        {
+          id: 6,
+          title: 'Pitch Deck Template',
+          description: 'Modèle de présentation PowerPoint pour pitcher votre startup devant des investisseurs avec exemples et conseils.',
+          category: 'template',
+          type: 'presentation',
+          author: 'Lucas Bernard',
+          uploadDate: '2024-07-15T13:20:00Z',
+          downloads: 634,
+          rating: 4.5,
+          reviews: 89,
+          size: '15.3 MB',
+          icon: '📊',
+          tags: ['Pitch', 'Présentation', 'Investisseurs', 'Startup'],
+          isPublic: true
+        }
+      ];
+      setResources(mockResources);
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  // Filter and sort resources
+  const filteredAndSortedResources = resources
+    .filter(resource => {
+      const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesCategory = !filterCategory || resource.category === filterCategory;
+      const matchesType = !filterType || resource.type === filterType;
+      return matchesSearch && matchesCategory && matchesType;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'downloads':
+          return b.downloads - a.downloads;
+        case 'rating':
+          return b.rating - a.rating;
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'newest':
+        default:
+          return new Date(b.uploadDate) - new Date(a.uploadDate);
+      }
+    });
+
+  const handleCreateResource = (newResource) => {
+    setResources([newResource, ...resources]);
+  };
+
+  const handleDownload = (resource) => {
+    // Simulate download
+    alert(`Téléchargement de "${resource.title}" commencé !`);
+    // In real app, this would trigger actual download
+    const updatedResources = resources.map(r =>
+      r.id === resource.id ? { ...r, downloads: r.downloads + 1 } : r
+    );
+    setResources(updatedResources);
+  };
+
+  const handleRate = (resourceId, rating, comment) => {
+    const updatedResources = resources.map(r => {
+      if (r.id === resourceId) {
+        const newReviews = r.reviews + 1;
+        const newRating = ((r.rating * r.reviews) + rating) / newReviews;
+        return { ...r, rating: Math.round(newRating * 10) / 10, reviews: newReviews };
+      }
+      return r;
+    });
+    setResources(updatedResources);
+    alert('Merci pour votre évaluation !');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-gray-600">Chargement des ressources...</div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Ressources</h1>
-      <div className="bg-white shadow rounded-lg p-6">
-        <p className="text-gray-600">Bibliothèque de ressources à venir...</p>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">📚 Bibliothèque de ressources</h1>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          ➕ Ajouter une ressource
+        </button>
       </div>
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-blue-100">
+              <span className="text-2xl">📚</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total ressources</p>
+              <p className="text-2xl font-bold text-gray-900">{resources.length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-green-100">
+              <span className="text-2xl">📥</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Téléchargements</p>
+              <p className="text-2xl font-bold text-gray-900">{resources.reduce((sum, r) => sum + r.downloads, 0)}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-yellow-100">
+              <span className="text-2xl">⭐</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Note moyenne</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {resources.length > 0 ? (resources.reduce((sum, r) => sum + r.rating, 0) / resources.length).toFixed(1) : '0'}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-purple-100">
+              <span className="text-2xl">💬</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Avis</p>
+              <p className="text-2xl font-bold text-gray-900">{resources.reduce((sum, r) => sum + r.reviews, 0)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="md:col-span-2">
+            <input
+              type="text"
+              placeholder="Rechercher des ressources..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Toutes les catégories</option>
+            <option value="guide">Guides</option>
+            <option value="template">Modèles</option>
+            <option value="formation">Formations</option>
+            <option value="legal">Juridique</option>
+            <option value="finance">Finance</option>
+          </select>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Tous les types</option>
+            <option value="pdf">PDF</option>
+            <option value="doc">Document</option>
+            <option value="video">Vidéo</option>
+            <option value="presentation">Présentation</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="newest">Plus récent</option>
+            <option value="downloads">Plus téléchargé</option>
+            <option value="rating">Mieux noté</option>
+            <option value="title">Alphabétique</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Resources Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredAndSortedResources.map((resource) => (
+          <div key={resource.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-3">
+                <span className="text-3xl">{resource.icon}</span>
+                <div className="flex items-center space-x-1">
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    resource.category === 'guide' ? 'bg-blue-100 text-blue-800' :
+                    resource.category === 'template' ? 'bg-green-100 text-green-800' :
+                    resource.category === 'formation' ? 'bg-purple-100 text-purple-800' :
+                    resource.category === 'legal' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {resource.category}
+                  </span>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    resource.type === 'pdf' ? 'bg-red-100 text-red-800' :
+                    resource.type === 'video' ? 'bg-blue-100 text-blue-800' :
+                    resource.type === 'doc' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {resource.type.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+              
+              <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{resource.title}</h3>
+              <p className="text-sm text-gray-600 mb-3 line-clamp-3">{resource.description}</p>
+              
+              <div className="flex items-center mb-3">
+                <div className="flex items-center">
+                  {[1,2,3,4,5].map((star) => (
+                    <span key={star} className={`text-sm ${star <= resource.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                      ⭐
+                    </span>
+                  ))}
+                </div>
+                <span className="text-xs text-gray-500 ml-1">({resource.reviews})</span>
+              </div>
+
+              <div className="flex flex-wrap gap-1 mb-3">
+                {resource.tags.slice(0, 3).map((tag, index) => (
+                  <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                    {tag}
+                  </span>
+                ))}
+                {resource.tags.length > 3 && (
+                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                    +{resource.tags.length - 3}
+                  </span>
+                )}
+              </div>
+
+              <div className="text-xs text-gray-500 mb-4">
+                Par {resource.author} • {resource.downloads} téléchargements • {resource.size}
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setSelectedResource(resource)}
+                  className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-200 transition-colors"
+                >
+                  👁️ Détails
+                </button>
+                <button
+                  onClick={() => handleDownload(resource)}
+                  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
+                >
+                  📥 Télécharger
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredAndSortedResources.length === 0 && (
+        <div className="text-center py-12">
+          <span className="text-6xl">📚</span>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune ressource trouvée</h3>
+          <p className="text-gray-500 mb-4">Essayez de modifier vos critères de recherche</p>
+        </div>
+      )}
+
+      {/* Modals */}
+      {showCreateForm && (
+        <CreateResourceModal
+          onClose={() => setShowCreateForm(false)}
+          onSave={handleCreateResource}
+        />
+      )}
+
+      {selectedResource && (
+        <ResourceDetailModal
+          resource={selectedResource}
+          onClose={() => setSelectedResource(null)}
+          onDownload={handleDownload}
+          onRate={handleRate}
+        />
+      )}
     </div>
   );
 }
