@@ -47,6 +47,7 @@ function useAuth() {
 const navigation = [
   { name: 'Tableau de bord', href: '/dashboard', icon: '🏠' },
   { name: 'Utilisateurs', href: '/users', icon: '👥' },
+  { name: 'Profils', href: '/profiles', icon: '🏷️' },
   { name: 'Messages', href: '/messages', icon: '💬' },
   { name: 'Opportunités', href: '/opportunities', icon: '🏢' },
   { name: 'Événements', href: '/events', icon: '📅' },
@@ -3974,6 +3975,972 @@ function CreateResourceModal({ onClose, onSave }) {
   );
 }
 
+// Profile Detail Modal
+function ProfileDetailModal({ profile, onClose, onConnect, onEdit }) {
+  const { user } = useAuth();
+
+  const getProfileIcon = (type) => {
+    const icons = {
+      'PME': '🏢',
+      'STARTUP': '🚀',
+      'EXPERT': '🧠',
+      'CONSULTANT': '💼',
+      'MENTOR': '🎯',
+      'INCUBATOR': '🌱',
+      'INVESTOR': '💰',
+      'FINANCIAL_INSTITUTION': '🏦',
+      'PUBLIC_ORGANIZATION': '🏛️',
+      'TECH_PARTNER': '⚡'
+    };
+    return icons[type] || '👤';
+  };
+
+  const getProfileLabel = (type) => {
+    const labels = {
+      'PME': 'PME',
+      'STARTUP': 'Startup',
+      'EXPERT': 'Expert',
+      'CONSULTANT': 'Consultant',
+      'MENTOR': 'Mentor',
+      'INCUBATOR': 'Incubateur',
+      'INVESTOR': 'Investisseur',
+      'FINANCIAL_INSTITUTION': 'Institution Financière',
+      'PUBLIC_ORGANIZATION': 'Organisme Public',
+      'TECH_PARTNER': 'Partenaire Tech'
+    };
+    return labels[type] || type;
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-2xl font-bold text-gray-900">{profile.name}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <span className="text-2xl">&times;</span>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Profile Header */}
+          <div className="flex items-center space-x-4">
+            <span className="text-4xl">{getProfileIcon(profile.profileType)}</span>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className={`px-3 py-1 text-sm rounded-full ${
+                  profile.profileType === 'PME' ? 'bg-blue-100 text-blue-800' :
+                  profile.profileType === 'STARTUP' ? 'bg-green-100 text-green-800' :
+                  profile.profileType === 'EXPERT' ? 'bg-purple-100 text-purple-800' :
+                  profile.profileType === 'MENTOR' ? 'bg-yellow-100 text-yellow-800' :
+                  profile.profileType === 'INVESTOR' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {getProfileLabel(profile.profileType)}
+                </span>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  profile.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                  profile.status === 'INACTIVE' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {profile.status}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">{profile.email}</p>
+              <p className="text-sm text-gray-500">{profile.company} • {profile.location || 'Localisation non précisée'}</p>
+            </div>
+          </div>
+
+          {/* Description */}
+          {profile.description && (
+            <div>
+              <h4 className="font-semibold mb-2">Description</h4>
+              <p className="text-gray-700">{profile.description}</p>
+            </div>
+          )}
+
+          {/* Expertises */}
+          {profile.expertises && profile.expertises.length > 0 && (
+            <div>
+              <h4 className="font-semibold mb-2">Expertises</h4>
+              <div className="flex flex-wrap gap-2">
+                {profile.expertises.map((expertise, index) => (
+                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded">
+                    {expertise.name} 
+                    {expertise.level && (
+                      <span className="ml-1 text-xs">
+                        {'⭐'.repeat(expertise.level)}
+                      </span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Contact & Links */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {profile.website && (
+              <div>
+                <span className="text-sm font-medium text-gray-700">Site web:</span>
+                <a href={profile.website} target="_blank" rel="noopener noreferrer" 
+                   className="text-blue-600 hover:text-blue-800 ml-2">
+                  {profile.website}
+                </a>
+              </div>
+            )}
+            {profile.linkedin && (
+              <div>
+                <span className="text-sm font-medium text-gray-700">LinkedIn:</span>
+                <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" 
+                   className="text-blue-600 hover:text-blue-800 ml-2">
+                  Profil LinkedIn
+                </a>
+              </div>
+            )}
+            {profile.phone && (
+              <div>
+                <span className="text-sm font-medium text-gray-700">Téléphone:</span>
+                <span className="ml-2">{profile.phone}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Profile Specific Info */}
+          {profile.profileType === 'INVESTOR' && (
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2 text-green-800">💰 Informations Investisseur</h4>
+              <p className="text-sm text-green-700">
+                Ticket d'investissement: 50k€ - 2M€ • Secteurs: FinTech, HealthTech, GreenTech
+              </p>
+            </div>
+          )}
+
+          {profile.profileType === 'INCUBATOR' && (
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2 text-purple-800">🌱 Programmes d'Incubation</h4>
+              <p className="text-sm text-purple-700">
+                Programme 6 mois • 20 startups par promotion • Financement jusqu'à 100k€
+              </p>
+            </div>
+          )}
+
+          {profile.profileType === 'FINANCIAL_INSTITUTION' && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2 text-blue-800">🏦 Solutions Financières</h4>
+              <p className="text-sm text-blue-700">
+                Prêts PME • Crédit-bail • Affacturage • Garanties bancaires
+              </p>
+            </div>
+          )}
+
+          {/* Rating & Stats */}
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <span className="text-sm text-gray-600 mr-1">Note:</span>
+                {[1,2,3,4,5].map((star) => (
+                  <span key={star} className={`text-sm ${star <= (profile.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`}>
+                    ⭐
+                  </span>
+                ))}
+                <span className="text-sm text-gray-500 ml-1">({profile.reviewCount || 0})</span>
+              </div>
+              <div className="text-sm text-gray-600">
+                Complétude: {profile.completionScore || 0}%
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              {user?.id !== profile.id && (
+                <button
+                  onClick={() => onConnect(profile)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  🤝 Se connecter
+                </button>
+              )}
+              {user?.id === profile.id && (
+                <button
+                  onClick={() => onEdit(profile)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                >
+                  ✏️ Modifier
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Profile Creation/Edit Modal
+function ProfileEditModal({ profile, onClose, onSave }) {
+  const [formData, setFormData] = useState({
+    name: profile?.name || '',
+    email: profile?.email || '',
+    profileType: profile?.profileType || 'PME',
+    company: profile?.company || '',
+    location: profile?.location || '',
+    description: profile?.description || '',
+    website: profile?.website || '',
+    linkedin: profile?.linkedin || '',
+    phone: profile?.phone || '',
+    expertises: profile?.expertises || []
+  });
+
+  const [newExpertise, setNewExpertise] = useState({ name: '', level: 3 });
+
+  const profileTypes = [
+    { value: 'PME', label: 'PME', icon: '🏢', description: 'Petites et Moyennes Entreprises' },
+    { value: 'STARTUP', label: 'Startup', icon: '🚀', description: 'Jeunes entreprises innovantes' },
+    { value: 'EXPERT', label: 'Expert', icon: '🧠', description: 'Experts sectoriels' },
+    { value: 'CONSULTANT', label: 'Consultant', icon: '💼', description: 'Consultants indépendants' },
+    { value: 'MENTOR', label: 'Mentor', icon: '🎯', description: 'Accompagnement entrepreneurial' },
+    { value: 'INCUBATOR', label: 'Incubateur', icon: '🌱', description: 'Structures d\'accompagnement' },
+    { value: 'INVESTOR', label: 'Investisseur', icon: '💰', description: 'Investisseurs privés' },
+    { value: 'FINANCIAL_INSTITUTION', label: 'Institution Financière', icon: '🏦', description: 'Banques et organismes financiers' },
+    { value: 'PUBLIC_ORGANIZATION', label: 'Organisme Public', icon: '🏛️', description: 'Institutions publiques' },
+    { value: 'TECH_PARTNER', label: 'Partenaire Tech', icon: '⚡', description: 'Fournisseurs technologiques' }
+  ];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (formData.name && formData.email && formData.profileType) {
+      const profileData = {
+        ...formData,
+        id: profile?.id || Date.now(),
+        status: profile?.status || 'ACTIVE',
+        verified: profile?.verified || false,
+        completionScore: calculateCompletionScore(formData),
+        rating: profile?.rating || 0,
+        reviewCount: profile?.reviewCount || 0,
+        createdAt: profile?.createdAt || new Date().toISOString()
+      };
+      onSave(profileData);
+      onClose();
+    }
+  };
+
+  const calculateCompletionScore = (data) => {
+    let score = 0;
+    if (data.name) score += 15;
+    if (data.email) score += 15;
+    if (data.company) score += 10;
+    if (data.description) score += 20;
+    if (data.location) score += 10;
+    if (data.website) score += 10;
+    if (data.linkedin) score += 10;
+    if (data.expertises.length > 0) score += 10;
+    return score;
+  };
+
+  const addExpertise = () => {
+    if (newExpertise.name && !formData.expertises.find(e => e.name === newExpertise.name)) {
+      setFormData({
+        ...formData,
+        expertises: [...formData.expertises, { ...newExpertise }]
+      });
+      setNewExpertise({ name: '', level: 3 });
+    }
+  };
+
+  const removeExpertise = (expertiseToRemove) => {
+    setFormData({
+      ...formData,
+      expertises: formData.expertises.filter(e => e.name !== expertiseToRemove.name)
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-gray-900">
+            {profile ? 'Modifier le profil' : 'Créer un profil'}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <span className="text-2xl">&times;</span>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Profile Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Type de profil *</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {profileTypes.map((type) => (
+                <label key={type.value} className={`cursor-pointer border rounded-lg p-3 ${
+                  formData.profileType === type.value 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="profileType"
+                    value={type.value}
+                    checked={formData.profileType === type.value}
+                    onChange={(e) => setFormData({...formData, profileType: e.target.value})}
+                    className="sr-only"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xl">{type.icon}</span>
+                    <div>
+                      <div className="font-medium">{type.label}</div>
+                      <div className="text-xs text-gray-500">{type.description}</div>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Company & Location */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Entreprise/Organisation</label>
+              <input
+                type="text"
+                value={formData.company}
+                onChange={(e) => setFormData({...formData, company: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Localisation</label>
+              <input
+                type="text"
+                value={formData.location}
+                onChange={(e) => setFormData({...formData, location: e.target.value})}
+                placeholder="Ville, Région, Pays"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              placeholder="Décrivez votre activité, vos objectifs, vos besoins..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows="3"
+            />
+          </div>
+
+          {/* Contact Info */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Site web</label>
+              <input
+                type="url"
+                value={formData.website}
+                onChange={(e) => setFormData({...formData, website: e.target.value})}
+                placeholder="https://..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+              <input
+                type="url"
+                value={formData.linkedin}
+                onChange={(e) => setFormData({...formData, linkedin: e.target.value})}
+                placeholder="https://linkedin.com/in/..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Expertises */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Expertises & Compétences</label>
+            <div className="flex space-x-2 mb-2">
+              <input
+                type="text"
+                value={newExpertise.name}
+                onChange={(e) => setNewExpertise({...newExpertise, name: e.target.value})}
+                placeholder="Nom de l'expertise..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={newExpertise.level}
+                onChange={(e) => setNewExpertise({...newExpertise, level: parseInt(e.target.value)})}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={1}>⭐ Débutant</option>
+                <option value={2}>⭐⭐ Intermédiaire</option>
+                <option value={3}>⭐⭐⭐ Confirmé</option>
+                <option value={4}>⭐⭐⭐⭐ Expert</option>
+                <option value={5}>⭐⭐⭐⭐⭐ Référence</option>
+              </select>
+              <button
+                type="button"
+                onClick={addExpertise}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+              >
+                +
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {formData.expertises.map((expertise, index) => (
+                <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full flex items-center">
+                  {expertise.name} {'⭐'.repeat(expertise.level)}
+                  <button
+                    type="button"
+                    onClick={() => removeExpertise(expertise)}
+                    className="ml-1 text-blue-600 hover:text-blue-800"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              💾 {profile ? 'Mettre à jour' : 'Créer le profil'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ProfilesPage() {
+  const { user } = useAuth();
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [editingProfile, setEditingProfile] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+
+  // Mock profiles data
+  useEffect(() => {
+    setTimeout(() => {
+      const mockProfiles = [
+        {
+          id: 1,
+          name: 'Tech Solutions SARL',
+          email: 'contact@techsolutions.fr',
+          profileType: 'PME',
+          company: 'Tech Solutions SARL',
+          location: 'Paris, France',
+          description: 'PME spécialisée dans le développement de solutions logicielles sur mesure pour les entreprises. Nous accompagnons nos clients dans leur transformation digitale.',
+          website: 'https://techsolutions.fr',
+          linkedin: 'https://linkedin.com/company/techsolutions',
+          phone: '+33 1 23 45 67 89',
+          status: 'ACTIVE',
+          verified: true,
+          completionScore: 95,
+          rating: 4.8,
+          reviewCount: 12,
+          expertises: [
+            { name: 'Développement Web', level: 5 },
+            { name: 'Cloud Computing', level: 4 },
+            { name: 'Cybersécurité', level: 3 }
+          ],
+          createdAt: '2024-01-15T10:00:00Z'
+        },
+        {
+          id: 2,
+          name: 'GreenTech Innovations',
+          email: 'founders@greentech-innov.com',
+          profileType: 'STARTUP',
+          company: 'GreenTech Innovations',
+          location: 'Lyon, France',
+          description: 'Startup innovante développant des solutions IoT pour l\'optimisation énergétique des bâtiments intelligents.',
+          website: 'https://greentech-innov.com',
+          linkedin: 'https://linkedin.com/company/greentech-innovations',
+          status: 'ACTIVE',
+          verified: false,
+          completionScore: 85,
+          rating: 4.2,
+          reviewCount: 8,
+          expertises: [
+            { name: 'IoT', level: 5 },
+            { name: 'Énergie', level: 4 },
+            { name: 'Intelligence Artificielle', level: 3 }
+          ],
+          createdAt: '2024-02-10T14:30:00Z'
+        },
+        {
+          id: 3,
+          name: 'Marie Dubois',
+          email: 'marie.dubois@expert-finance.fr',
+          profileType: 'EXPERT',
+          company: 'Expert Finance Conseil',
+          location: 'Bordeaux, France',
+          description: 'Expert-comptable et conseil en gestion financière avec 15 ans d\'expérience. Spécialisée dans l\'accompagnement des startups et PME.',
+          website: 'https://expert-finance-conseil.fr',
+          linkedin: 'https://linkedin.com/in/marie-dubois-expert',
+          phone: '+33 5 56 78 90 12',
+          status: 'ACTIVE',
+          verified: true,
+          completionScore: 100,
+          rating: 4.9,
+          reviewCount: 25,
+          expertises: [
+            { name: 'Comptabilité', level: 5 },
+            { name: 'Finance d\'entreprise', level: 5 },
+            { name: 'Fiscalité', level: 4 },
+            { name: 'Levée de fonds', level: 4 }
+          ],
+          createdAt: '2024-01-20T09:15:00Z'
+        },
+        {
+          id: 4,
+          name: 'Pierre Martin',
+          email: 'p.martin@mentortech.fr',
+          profileType: 'MENTOR',
+          company: 'MentorTech',
+          location: 'Toulouse, France',
+          description: 'Serial entrepreneur et mentor expérimenté. J\'accompagne les entrepreneurs tech dans le développement de leur stratégie et leur croissance.',
+          linkedin: 'https://linkedin.com/in/pierre-martin-mentor',
+          phone: '+33 6 12 34 56 78',
+          status: 'ACTIVE',
+          verified: true,
+          completionScore: 90,
+          rating: 4.7,
+          reviewCount: 18,
+          expertises: [
+            { name: 'Stratégie d\'entreprise', level: 5 },
+            { name: 'Marketing', level: 4 },
+            { name: 'Levée de fonds', level: 5 },
+            { name: 'Management', level: 4 }
+          ],
+          createdAt: '2024-01-25T16:45:00Z'
+        },
+        {
+          id: 5,
+          name: 'Capital Innovation Fund',
+          email: 'contact@capital-innovation.fr',
+          profileType: 'INVESTOR',
+          company: 'Capital Innovation Fund',
+          location: 'Paris, France',
+          description: 'Fonds d\'investissement spécialisé dans les startups tech en phase d\'amorçage et de développement. Ticket de 100k€ à 2M€.',
+          website: 'https://capital-innovation.fr',
+          linkedin: 'https://linkedin.com/company/capital-innovation',
+          status: 'ACTIVE',
+          verified: true,
+          completionScore: 85,
+          rating: 4.5,
+          reviewCount: 15,
+          expertises: [
+            { name: 'Investissement', level: 5 },
+            { name: 'Due Diligence', level: 5 },
+            { name: 'FinTech', level: 4 },
+            { name: 'SaaS', level: 4 }
+          ],
+          createdAt: '2024-02-01T11:30:00Z'
+        },
+        {
+          id: 6,
+          name: 'TechStart Incubator',
+          email: 'hello@techstart-incubator.fr',
+          profileType: 'INCUBATOR',
+          company: 'TechStart Incubator',
+          location: 'Nantes, France',
+          description: 'Incubateur technologique accompagnant les startups de l\'idée au marché. Programme de 6 mois avec financement et mentorat.',
+          website: 'https://techstart-incubator.fr',
+          linkedin: 'https://linkedin.com/company/techstart-incubator',
+          status: 'ACTIVE',
+          verified: true,
+          completionScore: 80,
+          rating: 4.3,
+          reviewCount: 22,
+          expertises: [
+            { name: 'Incubation', level: 5 },
+            { name: 'Coaching', level: 4 },
+            { name: 'Réseau', level: 5 },
+            { name: 'Innovation', level: 4 }
+          ],
+          createdAt: '2024-01-30T13:20:00Z'
+        }
+      ];
+      setProfiles(mockProfiles);
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  // Filter and sort profiles
+  const filteredAndSortedProfiles = profiles
+    .filter(profile => {
+      const matchesSearch = profile.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           profile.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           profile.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           profile.expertises.some(exp => exp.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesType = !filterType || profile.profileType === filterType;
+      const matchesLocation = !filterLocation || profile.location.toLowerCase().includes(filterLocation.toLowerCase());
+      return matchesSearch && matchesType && matchesLocation;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'rating':
+          return b.rating - a.rating;
+        case 'completion':
+          return b.completionScore - a.completionScore;
+        case 'company':
+          return a.company.localeCompare(b.company);
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+
+  const handleCreateProfile = (newProfile) => {
+    setProfiles([newProfile, ...profiles]);
+  };
+
+  const handleEditProfile = (updatedProfile) => {
+    setProfiles(profiles.map(p => p.id === updatedProfile.id ? updatedProfile : p));
+    setEditingProfile(null);
+  };
+
+  const handleConnect = (profile) => {
+    alert(`Demande de connexion envoyée à ${profile.name} !`);
+  };
+
+  const getProfileIcon = (type) => {
+    const icons = {
+      'PME': '🏢',
+      'STARTUP': '🚀',
+      'EXPERT': '🧠',
+      'CONSULTANT': '💼',
+      'MENTOR': '🎯',
+      'INCUBATOR': '🌱',
+      'INVESTOR': '💰',
+      'FINANCIAL_INSTITUTION': '🏦',
+      'PUBLIC_ORGANIZATION': '🏛️',
+      'TECH_PARTNER': '⚡'
+    };
+    return icons[type] || '👤';
+  };
+
+  const getProfileTypeColor = (type) => {
+    const colors = {
+      'PME': 'bg-blue-100 text-blue-800',
+      'STARTUP': 'bg-green-100 text-green-800',
+      'EXPERT': 'bg-purple-100 text-purple-800',
+      'CONSULTANT': 'bg-indigo-100 text-indigo-800',
+      'MENTOR': 'bg-yellow-100 text-yellow-800',
+      'INCUBATOR': 'bg-pink-100 text-pink-800',
+      'INVESTOR': 'bg-red-100 text-red-800',
+      'FINANCIAL_INSTITUTION': 'bg-blue-100 text-blue-800',
+      'PUBLIC_ORGANIZATION': 'bg-gray-100 text-gray-800',
+      'TECH_PARTNER': 'bg-green-100 text-green-800'
+    };
+    return colors[type] || 'bg-gray-100 text-gray-800';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-gray-600">Chargement des profils...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">🏷️ Gestion des Profils</h1>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
+          >
+            {viewMode === 'grid' ? '📋 Liste' : '📊 Grille'}
+          </button>
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            ➕ Nouveau profil
+          </button>
+        </div>
+      </div>
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-blue-100">
+              <span className="text-2xl">👥</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total profils</p>
+              <p className="text-2xl font-bold text-gray-900">{profiles.length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-green-100">
+              <span className="text-2xl">✅</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Vérifiés</p>
+              <p className="text-2xl font-bold text-gray-900">{profiles.filter(p => p.verified).length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-yellow-100">
+              <span className="text-2xl">⭐</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Note moyenne</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {profiles.length > 0 ? (profiles.reduce((sum, p) => sum + p.rating, 0) / profiles.length).toFixed(1) : '0'}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-purple-100">
+              <span className="text-2xl">📊</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Complétude moy.</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {profiles.length > 0 ? Math.round(profiles.reduce((sum, p) => sum + p.completionScore, 0) / profiles.length) : '0'}%
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="md:col-span-2">
+            <input
+              type="text"
+              placeholder="Rechercher par nom, entreprise, expertise..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Tous les profils</option>
+            <option value="PME">🏢 PME</option>
+            <option value="STARTUP">🚀 Startups</option>
+            <option value="EXPERT">🧠 Experts</option>
+            <option value="CONSULTANT">💼 Consultants</option>
+            <option value="MENTOR">🎯 Mentors</option>
+            <option value="INCUBATOR">🌱 Incubateurs</option>
+            <option value="INVESTOR">💰 Investisseurs</option>
+            <option value="FINANCIAL_INSTITUTION">🏦 Institutions Financières</option>
+            <option value="PUBLIC_ORGANIZATION">🏛️ Organismes Publics</option>
+            <option value="TECH_PARTNER">⚡ Partenaires Tech</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Localisation..."
+            value={filterLocation}
+            onChange={(e) => setFilterLocation(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="name">Nom A-Z</option>
+            <option value="company">Entreprise</option>
+            <option value="rating">Mieux notés</option>
+            <option value="completion">Plus complets</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Profiles Grid/List */}
+      <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+        {filteredAndSortedProfiles.map((profile) => (
+          <div key={profile.id} className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow ${
+            viewMode === 'list' ? 'p-4' : 'p-6'
+          }`}>
+            <div className={viewMode === 'list' ? 'flex items-center space-x-4' : ''}>
+              <div className={viewMode === 'list' ? 'flex-shrink-0' : 'mb-4'}>
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl">{getProfileIcon(profile.profileType)}</span>
+                  {profile.verified && (
+                    <span className="text-green-500" title="Profil vérifié">✅</span>
+                  )}
+                </div>
+              </div>
+              
+              <div className={viewMode === 'list' ? 'flex-1 min-w-0' : ''}>
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className={`px-2 py-1 text-xs rounded-full ${getProfileTypeColor(profile.profileType)}`}>
+                    {profile.profileType}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {profile.completionScore}% complété
+                  </span>
+                </div>
+                
+                <h3 className="font-semibold text-gray-900 mb-1 truncate">{profile.name}</h3>
+                <p className="text-sm text-gray-600 mb-2">{profile.company}</p>
+                <p className="text-xs text-gray-500 mb-2">{profile.location}</p>
+                
+                {viewMode === 'grid' && (
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{profile.description}</p>
+                )}
+                
+                <div className="flex items-center mb-3">
+                  <div className="flex items-center">
+                    {[1,2,3,4,5].map((star) => (
+                      <span key={star} className={`text-sm ${star <= profile.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                        ⭐
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-500 ml-1">({profile.reviewCount})</span>
+                </div>
+
+                {viewMode === 'grid' && profile.expertises && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {profile.expertises.slice(0, 3).map((expertise, index) => (
+                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                        {expertise.name}
+                      </span>
+                    ))}
+                    {profile.expertises.length > 3 && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                        +{profile.expertises.length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={`flex ${viewMode === 'list' ? 'ml-auto space-x-2' : 'space-x-2'}`}>
+              <button
+                onClick={() => setSelectedProfile(profile)}
+                className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-200 transition-colors"
+              >
+                👁️ Voir
+              </button>
+              {user?.id !== profile.id ? (
+                <button
+                  onClick={() => handleConnect(profile)}
+                  className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
+                >
+                  🤝 Contacter
+                </button>
+              ) : (
+                <button
+                  onClick={() => setEditingProfile(profile)}
+                  className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 transition-colors"
+                >
+                  ✏️ Modifier
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredAndSortedProfiles.length === 0 && (
+        <div className="text-center py-12">
+          <span className="text-6xl">🔍</span>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun profil trouvé</h3>
+          <p className="text-gray-500 mb-4">Essayez de modifier vos critères de recherche</p>
+        </div>
+      )}
+
+      {/* Modals */}
+      {showCreateForm && (
+        <ProfileEditModal
+          onClose={() => setShowCreateForm(false)}
+          onSave={handleCreateProfile}
+        />
+      )}
+
+      {editingProfile && (
+        <ProfileEditModal
+          profile={editingProfile}
+          onClose={() => setEditingProfile(null)}
+          onSave={handleEditProfile}
+        />
+      )}
+
+      {selectedProfile && (
+        <ProfileDetailModal
+          profile={selectedProfile}
+          onClose={() => setSelectedProfile(null)}
+          onConnect={handleConnect}
+          onEdit={setEditingProfile}
+        />
+      )}
+    </div>
+  );
+}
+
 function ResourcesPage() {
   const { user } = useAuth();
   const [resources, setResources] = useState([]);
@@ -4384,6 +5351,7 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="profiles" element={<ProfilesPage />} />
           <Route path="messages" element={<MessagesPage />} />
           <Route path="opportunities" element={<OpportunitiesPage />} />
           <Route path="events" element={<EventsPage />} />

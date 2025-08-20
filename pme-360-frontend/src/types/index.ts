@@ -2,16 +2,26 @@
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  profileType: ProfileType;
-  companyName?: string;
-  companyDescription?: string;
-  sector?: string;
+  name: string;
+  profileType: string;
+  company?: string;
   location?: string;
-  avatarUrl?: string;
-  createdAt: string;
-  updatedAt: string;
+  avatar?: string;
+  description?: string;
+  website?: string;
+  phone?: string;
+  verified?: boolean;
+  status?: string;
+  completionScore?: number;
+  rating?: number;
+  reviewCount?: number;
+  createdAt?: string;
+  lastLogin?: string;
+  expertises?: Array<{
+    name: string;
+    level: number;
+    verified: boolean;
+  }>;
   _count?: {
     sentMessages: number;
     receivedMessages: number;
@@ -28,11 +38,15 @@ export interface User {
 }
 
 export enum ProfileType {
+  PME = 'PME',
   STARTUP = 'STARTUP',
-  SME = 'SME',
-  INVESTOR = 'INVESTOR',
-  EXPERT = 'EXPERT',
+  EXPERT = 'EXPERT', 
+  MENTOR = 'MENTOR',
   INCUBATOR = 'INCUBATOR',
+  INVESTOR = 'INVESTOR',
+  FINANCIAL_INSTITUTION = 'FINANCIAL_INSTITUTION',
+  PUBLIC_ORGANIZATION = 'PUBLIC_ORGANIZATION',
+  TECH_PARTNER = 'TECH_PARTNER',
   ADMIN = 'ADMIN'
 }
 
@@ -45,13 +59,13 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
-  profileType: ProfileType;
-  companyName?: string;
-  companyDescription?: string;
-  sector?: string;
+  name: string;
+  profileType: string;
+  company?: string;
   location?: string;
+  description?: string;
+  website?: string;
+  phone?: string;
 }
 
 export interface AuthResponse {
@@ -60,6 +74,8 @@ export interface AuthResponse {
     user: User;
     token: string;
     refreshToken: string;
+    expiresIn: number;
+    refreshExpiresIn?: number;
   };
   message: string;
 }

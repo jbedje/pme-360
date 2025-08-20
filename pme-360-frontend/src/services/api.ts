@@ -33,7 +33,7 @@ import {
 
 class ApiService {
   private api: AxiosInstance;
-  private baseURL = 'http://localhost:3000/api/v1';
+  private baseURL = 'http://localhost:3000/api';
 
   constructor() {
     this.api = axios.create({
