@@ -11,7 +11,7 @@ const simple_jwt_1 = require("./utils/simple-jwt");
 const users_1 = require("./services/users");
 const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
-const PORT = 3003;
+const PORT = 3000;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.get('/health', (req, res) => {
